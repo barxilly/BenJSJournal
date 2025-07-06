@@ -1,0 +1,16 @@
+- [ ] Base Layout
+- [ ] Journalling with Markdown and Titles
+- [ ] Encryption
+- [ ] Backups
+- [ ] Day/Mood Rankings?
+- [ ] Custom Rankings?
+- [ ] Portability
+- [ ] Standardized Data Format
+- [ ] Sounds?
+- [ ] Notifications
+- [ ] PWA
+- [ ] Settings
+- [ ] Fonts
+- [ ] Title
+- [ ] Embeds
+- [ ] README
