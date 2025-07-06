@@ -1,7 +1,53 @@
 .title {
   font-size: 4rem;
   font-weight: bold;
-  color: #333;
   text-align: center;
   margin-top: 20px;
+}
+
+.journal-textarea textarea::-webkit-scrollbar,
+.journal-textarea .mantine-Textarea-input::-webkit-scrollbar {
+  width: 15px;
+  border-radius: 1rem !important;
+  margin-right: 10px !important;
+}
+
+/* Light theme scrollbar */
+[data-mantine-color-scheme="light"] .journal-textarea textarea::-webkit-scrollbar-track,
+[data-mantine-color-scheme="light"] .journal-textarea .mantine-Textarea-input::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+  border-radius: 1rem !important;
+}
+
+[data-mantine-color-scheme="light"] .journal-textarea textarea::-webkit-scrollbar-thumb,
+[data-mantine-color-scheme="light"] .journal-textarea .mantine-Textarea-input::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 1rem !important;
+}
+
+[data-mantine-color-scheme="light"] .journal-textarea textarea::-webkit-scrollbar-thumb:hover,
+[data-mantine-color-scheme="light"] .journal-textarea .mantine-Textarea-input::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
+/* Dark theme scrollbar */
+[data-mantine-color-scheme="dark"] .journal-textarea textarea::-webkit-scrollbar-track,
+[data-mantine-color-scheme="dark"] .journal-textarea .mantine-Textarea-input::-webkit-scrollbar-track {
+  background-color: #2e2e2e;
+  border-radius: 1rem !important;
+}
+
+[data-mantine-color-scheme="dark"] .journal-textarea textarea::-webkit-scrollbar-thumb,
+[data-mantine-color-scheme="dark"] .journal-textarea .mantine-Textarea-input::-webkit-scrollbar-thumb {
+  background-color: #666;
+  border-radius: 1rem !important;
+}
+
+[data-mantine-color-scheme="dark"] .journal-textarea textarea::-webkit-scrollbar-thumb:hover,
+[data-mantine-color-scheme="dark"] .journal-textarea .mantine-Textarea-input::-webkit-scrollbar-thumb:hover {
+  background-color: #888;
+}
+
+.appcon{
+  background: linear-gradient(to top, #75b2bc44,  #00000000);
 }

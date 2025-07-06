@@ -1,14 +1,14 @@
-import { useState } from "react";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import "./App.css";
-import { Center, Grid, MantineProvider, Space, Stack, Textarea, Title } from "@mantine/core";
+import { Center, Grid, MantineProvider, Space, Stack, Textarea, Title, useMantineColorScheme } from "@mantine/core";
 import { Calendar } from "@mantine/dates";
 
 function App() {
+  
   return (
-    <MantineProvider>
-      <Center style={{ height: "100vh", width: "100vw" }}>
+    <MantineProvider defaultColorScheme="auto" >
+      <Center className="appcon" style={{ height: "100vh", width: "100vw" }}>
         <Stack align="center" justify="center" style={{ width: "100%", maxWidth: 800 }}>
           <div style={{ textAlign: "center" }}>
             <Title className="title">BenJS Journal</Title>
@@ -46,6 +46,7 @@ function App() {
                   fontSize: "16px",
                   lineHeight: 1.6
                 }}
+                className="journal-textarea"
               />
             </Grid.Col>
           </Grid>
