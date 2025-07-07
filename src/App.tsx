@@ -1,14 +1,14 @@
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import "./App.css";
-import { Center, Grid, MantineProvider, Space, Stack, Textarea, Title, useMantineColorScheme } from "@mantine/core";
+import { Card, Center, Grid, MantineProvider, Rating, Space, Stack, Textarea, Title, useMantineColorScheme } from "@mantine/core";
 import { Calendar } from "@mantine/dates";
 
 function App() {
   
   return (
     <MantineProvider defaultColorScheme="auto" >
-      <Center className="appcon" style={{ height: "100vh", width: "100vw" }}>
+      <Center className="appcon" style={{  width: "100vw", paddingTop: 0, paddingBottom: 0, paddingLeft: "1em", paddingRight: "1em" }}>
         <Stack align="center" justify="center" style={{ width: "100%", maxWidth: 800 }}>
           <div style={{ textAlign: "center" }}>
             <Title className="title">BenJS Journal</Title>
@@ -17,11 +17,14 @@ function App() {
             </Title>
           </div>
           <Space h="lg" />
-          <Grid justify="center" align="center" style={{ width: "100%" }}>
+          <Grid justify="center" align="stretch" style={{ width: "100%", minHeight: "70vh" }}>
             <Grid.Col span={{ base: 12, sm: 6 }}>
-              <Calendar></Calendar>
+              <Card padding="lg" radius="md" withBorder style={{ width: "100%", height:"70vh" }}><Center>
+              <Calendar></Calendar></Center>
+              </Card>
             </Grid.Col>
             <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Stack style={{ height: "70vh" }} gap="md">
               <Textarea
                 placeholder={[
                   "Write your thoughts here...",
@@ -36,9 +39,8 @@ function App() {
                   "Describe a memorable moment."
                 ][Math.floor(Math.random() * 10)]}
                 autosize
-                minRows={10}
-                maxRows={20}
-                variant="filled"
+                minRows={8}
+                variant="default"
                 size="md"
                 radius="lg"
                 style={{ 
@@ -48,6 +50,11 @@ function App() {
                 }}
                 className="journal-textarea"
               />
+              <Card padding="lg" radius="md" withBorder style={{ width: "100%" }}>
+                <Center>
+              <Rating size="lg" defaultValue={0} /></Center>
+              </Card>
+              </Stack>
             </Grid.Col>
           </Grid>
         </Stack>

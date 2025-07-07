@@ -5,6 +5,25 @@
   margin-top: 20px;
 }
 
+.journal-textarea {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.journal-textarea .mantine-Textarea-wrapper {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.journal-textarea .mantine-Textarea-input,
+.journal-textarea textarea {
+  flex: 1 !important;
+  min-height: 200px !important;
+  resize: none !important;
+}
+
 .journal-textarea textarea::-webkit-scrollbar,
 .journal-textarea .mantine-Textarea-input::-webkit-scrollbar {
   width: 15px;
@@ -48,6 +67,6 @@
   background-color: #888;
 }
 
-.appcon{
-  background: linear-gradient(to top, #75b2bc44,  #00000000);
+body{
+  background: linear-gradient(to top, #75b2bc44,  #00000000) !important;
 }

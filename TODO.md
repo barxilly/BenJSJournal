@@ -1,4 +1,4 @@
-- [ ] Base Layout
+- [x] Base Layout
 - [ ] Journalling with Markdown and Titles
 - [ ] Encryption
 - [ ] Backups
