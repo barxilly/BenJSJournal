@@ -1,5 +1,6 @@
 - [x] Base Layout
 - [ ] Journalling with Markdown and Titles
+- [ ] Fix Ratings Dark BG
 - [ ] Encryption
 - [ ] Backups
 - [ ] Day/Mood Rankings?

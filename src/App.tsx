@@ -19,6 +19,46 @@ import { useState } from "react";
 
 function App() {
   const [date, setDate] = useState<string | null>((new Date().toISOString().split("T")[0]).toString())
+  const [curTitle, setCurTitle] = useState<string | null>(null);
+  const [curContent, setCurContent] = useState<string | null>(null);
+  const [curRating, setCurRating] = useState<number | null>(null);
+
+  window.onload = () => {
+    // Initialize localStorage with an empty object if it doesn't exist
+    if (!localStorage.getItem("journalEntries")) {
+      localStorage.setItem("journalEntries", JSON.stringify({}));
+      console.log("Initialized localStorage with an empty journalEntries object.");
+    } else {
+      const entries = JSON.parse(localStorage.getItem("journalEntries") || "{}");
+      console.log("Loaded journal entries from localStorage:", entries);
+      // Set the current date's title if it exists
+      const today = new Date().toISOString().split("T")[0];
+      setDate(today);
+      setCurTitle(entries[today]?.title || "");
+      setCurContent(entries[today]?.content || "");
+      setCurRating(entries[today]?.rating || 0);
+    }
+  }
+
+   function editJournal(date:string, title?:string, content?:string, rating?:number) {
+    let entries = JSON.parse(localStorage.getItem("journalEntries") || "{}");
+    if (!entries[date]) {
+      entries[date] = {
+        title: title || "",
+        content: content || "",
+        rating: rating || 0,
+      };
+      console.log("New entry created for date:", date, "with title:", entries[date].title);
+    }
+    else {
+      entries[date].title = title || entries[date].title;
+      entries[date].content = content || entries[date].content;
+      entries[date].rating = rating || entries[date].rating;
+      console.log("Entry updated for date:", date, "with title:", entries[date].title);
+    }
+    localStorage.setItem("journalEntries", JSON.stringify(entries));
+    console.log("Journal entries saved to localStorage:", entries);
+  }
 
   return (
     <MantineProvider defaultColorScheme="auto">
@@ -55,6 +95,7 @@ function App() {
                 radius="lg"
                 withBorder
                 style={{ width: "100%", height: "60vh" }}
+                color="white"
               >
                 <Center>
                   <DatePicker 
@@ -65,7 +106,21 @@ function App() {
                     hideOutsideDates
                     defaultValue={new Date().toISOString().split("T")[0]}
                     value={date}
-                    onChange={setDate}
+                    onChange={(value) => {
+                      if (value) {
+                        const selectedDate = value;
+                        setDate(selectedDate);
+                        const entries = JSON.parse(localStorage.getItem("journalEntries") || "{}");
+                        if (!entries[selectedDate]) {
+                          editJournal(selectedDate);
+                        } else {
+                          console.log("Entry already exists for date:", selectedDate);
+                        }
+                        setCurTitle(entries[selectedDate]?.title || "");
+                        setCurContent(entries[selectedDate]?.content || "");
+                        setCurRating(entries[selectedDate]?.rating || 0);
+                      }
+                    }}
                   />
                 </Center>
               </Card>
@@ -79,6 +134,12 @@ function App() {
                   radius="lg"
                   style={{ width: "100%", fontSize: "16px" }}
                   disabled={!(date == (new Date().toISOString().split("T")[0]).toString())}
+                  onChange={(e) => {
+                    editJournal(date || "", e.target.value);
+                    setCurTitle(e.target.value);
+                  }}
+                  value={curTitle || ""}
+
                 />
                 <Textarea
                   placeholder={
@@ -108,15 +169,26 @@ function App() {
                   }}
                   className="journal-textarea"
                   disabled={!(date == (new Date().toISOString().split("T")[0]).toString())}
+                  value={curContent || ""}
+                  onChange={(e) => {
+                    editJournal(date || "", undefined, e.target.value);
+                    setCurContent(e.target.value);
+                  }}
                 />
                 <Card
                   padding="lg"
                   radius="lg"
                   withBorder
+                  color="white"
+                  className="rating-card"
                   style={{ width: "100%", backgroundColor: !(date == (new Date().toISOString().split("T")[0]).toString()) ? "#e9ecef" : "" }}
                 >
                   <Center>
-                    <Rating size="lg" defaultValue={0} />
+                    <Rating size="lg" defaultValue={0} onChange={(value) => {
+                      editJournal(date || "", undefined, undefined, value);
+                      setCurRating(value);
+                    }} 
+                    value={curRating || 0} />
                   </Center>
                 </Card>
               </Stack>
