@@ -6,18 +6,20 @@
 - [ ] Search
 - [ ] Tags
 - [ ] Attachments
-- [ ] Encryption
-- [ ] Backups
+- [x] Encryption
+- [x] Backups
 - [x] Day/Mood Rankings?
 - [ ] Custom Rankings?
 - [ ] Portability
-- [ ] Standardized Data Format
-- [ ] Export as SDF or as JSON, individual days by TXT
+- [x] Standardized Data Format
+- [x] Export as SDF or as JSON
+- [ ] , individual days by TXT
 - [ ] Sounds?
 - [ ] Notifications
 - [ ] PWA
 - [ ] Settings
 - [ ] Fonts
 - [x] Title
-- [ ] Embeds
+- [x] Embeds
+- [ ] Embed Image
 - [ ] README

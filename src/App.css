@@ -76,7 +76,7 @@ body{
 }
 
 .settings-icon {
-  position: absolute;
+  position: fixed;
   bottom: 1em;
   right: 1em;
   font-size: 1.5em;
@@ -86,4 +86,8 @@ body{
 .settings-icon:hover {
   color: #888888ff;
   cursor: pointer;
+}
+
+.hidden {
+  display: none;
 }
