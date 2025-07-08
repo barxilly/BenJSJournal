@@ -8,6 +8,7 @@ import {
   createTheme,
   Flex,
   Grid,
+  Indicator,
   MantineProvider,
   Rating,
   Space,
@@ -22,6 +23,7 @@ import { useState } from "react";
 import { FaCog } from "react-icons/fa";
 import { BiCross } from "react-icons/bi";
 import { ImCross } from "react-icons/im";
+  import { useEffect } from "react";
 
 function App() {
   const [date, setDate] = useState<string | null>(
@@ -31,7 +33,9 @@ function App() {
   const [curContent, setCurContent] = useState<string | null>(null);
   const [curRating, setCurRating] = useState<number | null>(null);
 
-  window.onload = () => {
+  // Move initialization logic to useEffect to avoid state updates during render
+
+  useEffect(() => {
     // Initialize localStorage with an empty object if it doesn't exist
     if (!localStorage.getItem("journalEntries")) {
       localStorage.setItem("journalEntries", JSON.stringify({}));
@@ -50,7 +54,7 @@ function App() {
       setCurContent(entries[today]?.content || "");
       setCurRating(entries[today]?.rating || 0);
     }
-  };
+  }, []);
 
   function editJournal(
     date: string,
@@ -91,12 +95,12 @@ function App() {
     headings: { fontFamily: '"M PLUS Rounded 1c", sans-serif' },
   });
 
-
   function isMobile() {
     // Use user agent or screen width to determine if the device is mobile
     return (
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent) ||
+        navigator.userAgent
+      ) ||
       (window.innerWidth <= 800 && window.innerHeight <= 600)
     );
   }
@@ -142,34 +146,77 @@ function App() {
                 style={{ width: "100%", height: "60vh" }}
                 color="white"
               >
-                  <DatePicker
-                    size={!isMobile()? "lg":"xl"}
-                    style={{  position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
-                    firstDayOfWeek={1}
-                    hideOutsideDates
-                    defaultValue={new Date().toISOString().split("T")[0]}
-                    value={date}
-                    onChange={(value) => {
-                      if (value) {
-                        const selectedDate = value;
-                        setDate(selectedDate);
-                        const entries = JSON.parse(
-                          localStorage.getItem("journalEntries") || "{}"
+                <DatePicker
+                  size={!isMobile() ? "lg" : "xl"}
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                  }}
+                  firstDayOfWeek={1}
+                  hideOutsideDates
+                  defaultValue={new Date().toISOString().split("T")[0]}
+                  value={date}
+                  onChange={(value) => {
+                    if (value) {
+                      const selectedDate = value;
+                      setDate(selectedDate);
+                      const entries = JSON.parse(
+                        localStorage.getItem("journalEntries") || "{}"
+                      );
+                      if (!entries[selectedDate]) {
+                        editJournal(selectedDate);
+                      } else {
+                        console.log(
+                          "Entry already exists for date:",
+                          selectedDate
                         );
-                        if (!entries[selectedDate]) {
-                          editJournal(selectedDate);
-                        } else {
-                          console.log(
-                            "Entry already exists for date:",
-                            selectedDate
-                          );
-                        }
-                        setCurTitle(entries[selectedDate]?.title || "");
-                        setCurContent(entries[selectedDate]?.content || "");
-                        setCurRating(entries[selectedDate]?.rating || 0);
                       }
-                    }}
-                  />
+                      setCurTitle(entries[selectedDate]?.title || "");
+                      setCurContent(entries[selectedDate]?.content || "");
+                      setCurRating(entries[selectedDate]?.rating || 0);
+                    }
+                  }}
+                  renderDay={(rdate:string) => {
+                    const today = new Date().toISOString().split("T")[0];
+                    const isToday = rdate === today;
+                    const isWeekend = new Date(rdate).getDay() === 0 || new Date(rdate).getDay() === 6;
+                    const isPast = new Date(rdate) < new Date(today);
+                    const isSelected = rdate === date;
+                    return (
+                      <div
+                        style={{
+                          padding: "0.5em",
+                          position: "relative",
+                          borderRadius: "var(--mantine-radius-default)",
+                          color: isSelected? "" : isToday?"var(--mantine-primary-color-filled)": isWeekend ? "#ff6b6b" : isPast ? "#adb5bd" : "#495057",
+                          border: isSelected ? "" : isToday ? "2px solid var(--mantine-primary-color-filled)" : ""
+                        }}
+                      >
+                        {(JSON.parse(localStorage.getItem("journalEntries") || "{}")[
+                          rdate
+                        ]?.rating > 0) ? (<>
+                          <Indicator
+                            color="green"
+                            size={8}
+                            offset={-2}
+                            style={{
+                              position: "absolute",
+                              top: "0.5em",
+                              right: "0.5em",
+                            }}
+                          >
+                            
+                          </Indicator>{rdate.split("-")[2]}</>
+                        ) : (
+                          rdate.split("-")[2]
+                        )}
+                      </div>
+                    );
+                  }}
+                  
+                />
               </Card>
             </Grid.Col>
             <Grid.Col span={{ base: 12, sm: 6 }}>
@@ -255,77 +302,150 @@ function App() {
             </Grid.Col>
           </Grid>
         </Stack>
-        <Card id="settings-card" style={{ display: "none", position: "fixed", top: "50px", left: "50%", transform: "translateX(-50%)", width: "90%", maxWidth: "90vw", zIndex: 1000, minHeight:'70vh', maxHeight:"90vh" }} padding="lg" radius="lg" withBorder>
-          <ImCross className="close-icon" onClick={() => {
-            const settingsCard = document.getElementById("settings-card");
-            if (settingsCard) {
-              settingsCard.style.display = "none";
-              const mainContent = document.getElementById("main-content");
-              if (mainContent) {
-                mainContent.style.opacity = "1";
-                mainContent.style.userSelect = "auto";
-                mainContent.style.pointerEvents = "auto";
+        <Card
+          id="settings-card"
+          style={{
+            display: "none",
+            position: "fixed",
+            top: "50px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "90%",
+            maxWidth: "90vw",
+            zIndex: 1000,
+            minHeight: "70vh",
+            maxHeight: "90vh",
+          }}
+          padding="lg"
+          radius="lg"
+          withBorder
+        >
+          <ImCross
+            className="close-icon"
+            onClick={() => {
+              const settingsCard = document.getElementById("settings-card");
+              if (settingsCard) {
+                settingsCard.style.display = "none";
+                const mainContent = document.getElementById("main-content");
+                if (mainContent) {
+                  mainContent.style.opacity = "1";
+                  mainContent.style.userSelect = "auto";
+                  mainContent.style.pointerEvents = "auto";
+                }
+                // Make settings cog icon reappear when settings are closed
+                const settingsIcon = document.querySelector(".settings-icon");
+                if (settingsIcon) {
+                  settingsIcon.classList.remove("hidden");
+                }
               }
-              // Make settings cog icon reappear when settings are closed
-              const settingsIcon = document.querySelector(".settings-icon"); 
-              if (settingsIcon) {
-                settingsIcon.classList.remove("hidden");
-              }
-            }
-          }} style={{ cursor: "pointer", position: "absolute", top: "1em", right: "1em", fontSize: "24px" }} />
+            }}
+            style={{
+              cursor: "pointer",
+              position: "absolute",
+              top: "1em",
+              right: "1em",
+              fontSize: "24px",
+            }}
+          />
           <Title order={3}>Settings</Title>
-          <Title order={4} style={{ marginTop: "1em" }}>Export</Title>
+          <Title order={4} style={{ marginTop: "1em" }}>
+            Export
+          </Title>
           <Flex gap="md">
-            <Button onClick={() => {
-              let entries = JSON.parse(
-                localStorage.getItem("journalEntries") || "{}"
-              );
-              // Remove blank entries
-              entries = Object.fromEntries(
-                Object.entries(entries as any).filter(([, value]: [string, any]) => {
-                  return value.title || value.content || value.rating;
-                })
-              );
-              const blob = new Blob([JSON.stringify(entries, null, 2)], {
-                type: "application/json",
-              });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = "journal-entries.json";
-              a.click();
-              URL.revokeObjectURL(url);
-            }}>
+            <Button
+              onClick={() => {
+                let entries = JSON.parse(
+                  localStorage.getItem("journalEntries") || "{}"
+                );
+                // Remove blank entries
+                entries = Object.fromEntries(
+                  Object.entries(entries as any).filter(
+                    ([, value]: [string, any]) => {
+                      return value.title || value.content || value.rating;
+                    }
+                  )
+                );
+                const blob = new Blob([JSON.stringify(entries, null, 2)], {
+                  type: "application/json",
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "journal-entries.json";
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
               .JSON
             </Button>
-            <Button onClick={() => {
-              let entries = JSON.parse(
-                localStorage.getItem("journalEntries") || "{}"
-              );
-              // Remove blank entries
-              entries = Object.fromEntries(
-                Object.entries(entries as any).filter(([, value]: [string, any]) => {
-                  return value.title || value.content || value.rating;
-                })
-              );
-              entries = btoa(JSON.stringify(entries));
-              // Ask user for password
-              const password = prompt("Enter a password to encrypt your journal entries:");
-              if (password) {
-                // Use SHA-256 to hash the password
-                const encoder = new TextEncoder();
-                crypto.subtle.digest("SHA-256", encoder.encode(password))
-                  .then((hash) => {
-                    const hashArray = Array.from(new Uint8Array(hash));
-                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                    // Encrypt the entries with the hashed password
-                    const encryptedEntries = btoa(
-                      JSON.stringify({
-                        data: entries,
-                        passwordHash: hashHex,
-                      })
+            <Button
+              onClick={async () => {
+                let entries = JSON.parse(
+                  localStorage.getItem("journalEntries") || "{}"
+                );
+                // Remove blank entries
+                entries = Object.fromEntries(
+                  Object.entries(entries as any).filter(
+                    ([, value]: [string, any]) => {
+                      return value.title || value.content || value.rating;
+                    }
+                  )
+                );
+
+                // Ask user for password
+                const password = prompt(
+                  "Enter a password to encrypt your journal entries:"
+                );
+                if (password) {
+                  try {
+                    const encoder = new TextEncoder();
+
+                    // Derive key from password using PBKDF2
+                    const salt = crypto.getRandomValues(new Uint8Array(16));
+                    const keyMaterial = await crypto.subtle.importKey(
+                      "raw",
+                      encoder.encode(password),
+                      "PBKDF2",
+                      false,
+                      ["deriveKey"]
                     );
-                    const blob = new Blob([encryptedEntries], {
+
+                    const key = await crypto.subtle.deriveKey(
+                      {
+                        name: "PBKDF2",
+                        salt: salt,
+                        iterations: 100000,
+                        hash: "SHA-256",
+                      },
+                      keyMaterial,
+                      { name: "AES-GCM", length: 256 },
+                      false,
+                      ["encrypt"]
+                    );
+
+                    // Encrypt the data
+                    const iv = crypto.getRandomValues(new Uint8Array(12));
+                    const dataToEncrypt = encoder.encode(
+                      JSON.stringify(entries)
+                    );
+
+                    const encryptedData = await crypto.subtle.encrypt(
+                      {
+                        name: "AES-GCM",
+                        iv: iv,
+                      },
+                      key,
+                      dataToEncrypt
+                    );
+
+                    // Package everything together
+                    const encryptedPackage = {
+                      salt: Array.from(salt),
+                      iv: Array.from(iv),
+                      data: Array.from(new Uint8Array(encryptedData)),
+                    };
+
+                    const blob = new Blob([JSON.stringify(encryptedPackage)], {
                       type: "application/json",
                     });
                     const url = URL.createObjectURL(blob);
@@ -334,94 +454,145 @@ function App() {
                     a.download = "journal-entries.jbjs";
                     a.click();
                     URL.revokeObjectURL(url);
+                  } catch (error) {
+                    console.error("Encryption failed:", error);
+                    alert("Failed to encrypt journal entries.");
                   }
-                );
-              } else {
-                alert("Password is required to encrypt journal entries.");
-              }
-            }}>
+                } else {
+                  alert("Password is required to encrypt journal entries.");
+                }
+              }}
+            >
               .JBJS (Encrypted Journal Format)
             </Button>
           </Flex>
-          <Title order={4} style={{ marginTop: "1em" }}>Import (.JBJS)</Title>
+          <Title order={4} style={{ marginTop: "1em" }}>
+            Import (.JBJS)
+          </Title>
           <Flex gap="md">
             <Card withBorder m="1em">
-            <input
-              type="file"
-              accept=".jbjs"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                // Ask for password if file is .jbjs
-                if (file && file.name.endsWith(".jbjs")) {
-                  const decoder = new TextDecoder();
-                  const reader = new FileReader();
-                  reader.onload = (event) => {
-                    const content = event.target?.result as string;
-                    try {
-                      const decryptedData = JSON.parse(atob(content));
-                      const password = prompt("Enter the password to decrypt your journal entries:");
-                      if (password) {
-                        // Hash the password
-                        const encoder = new TextEncoder();
-                        crypto.subtle.digest("SHA-256", encoder.encode(password))
-                          .then((hash) => {
-                            const hashArray = Array.from(new Uint8Array(hash));
-                            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                            if (decryptedData.passwordHash === hashHex) {
-                              // Password matches, import entries
-                              localStorage.setItem(
-                                "journalEntries",
-                                JSON.stringify(decryptedData.data)
-                              );
-                              alert("Journal entries imported successfully.");
-                              window.location.reload();
-                            } else {
-                              e.target.value = "";
-                              alert("Incorrect password. Journal entries not imported.");
-                            }
-                          });
-                      } else {
+              <input
+                type="file"
+                accept=".jbjs"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  // Ask for password if file is .jbjs
+                  if (file && file.name.endsWith(".jbjs")) {
+                    const reader = new FileReader();
+                    reader.onload = async (event) => {
+                      const content = event.target?.result as string;
+                      try {
+                        const encryptedPackage = JSON.parse(content);
+                        const password = prompt(
+                          "Enter the password to decrypt your journal entries:"
+                        );
+                        if (password) {
+                          try {
+                            const encoder = new TextEncoder();
+                            const decoder = new TextDecoder();
+
+                            // Recreate the salt and IV from arrays
+                            const salt = new Uint8Array(encryptedPackage.salt);
+                            const iv = new Uint8Array(encryptedPackage.iv);
+                            const encryptedData = new Uint8Array(
+                              encryptedPackage.data
+                            );
+
+                            // Derive the same key from password
+                            const keyMaterial = await crypto.subtle.importKey(
+                              "raw",
+                              encoder.encode(password),
+                              "PBKDF2",
+                              false,
+                              ["deriveKey"]
+                            );
+
+                            const key = await crypto.subtle.deriveKey(
+                              {
+                                name: "PBKDF2",
+                                salt: salt,
+                                iterations: 100000,
+                                hash: "SHA-256",
+                              },
+                              keyMaterial,
+                              { name: "AES-GCM", length: 256 },
+                              false,
+                              ["decrypt"]
+                            );
+
+                            // Decrypt the data
+                            const decryptedData = await crypto.subtle.decrypt(
+                              {
+                                name: "AES-GCM",
+                                iv: iv,
+                              },
+                              key,
+                              encryptedData
+                            );
+
+                            const decryptedText = decoder.decode(decryptedData);
+                            const entries = JSON.parse(decryptedText);
+
+                            localStorage.setItem(
+                              "journalEntries",
+                              JSON.stringify(entries)
+                            );
+                            alert("Journal entries imported successfully.");
+                            window.location.reload();
+                          } catch (error) {
+                            e.target.value = "";
+                            console.error("Decryption failed:", error);
+                            alert(
+                              "Incorrect password or corrupted file. Journal entries not imported."
+                            );
+                          }
+                        } else {
+                          e.target.value = "";
+                          alert(
+                            "Password is required to decrypt journal entries."
+                          );
+                        }
+                      } catch (error) {
                         e.target.value = "";
-                        alert("Password is required to decrypt journal entries.");
+                        console.error("Error parsing JBJS file:", error);
+                        alert("Invalid JBJS file format.");
                       }
-                    } catch (error) {
-                      e.target.value = "";
-                      console.error("Error parsing JBJS file:", error);
-                      alert("Invalid JBJS file format.");
-                    }
+                    };
+                    reader.readAsText(file);
+                  } else if (file && file.name.endsWith(".json")) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const content = event.target?.result as string;
+                      try {
+                        const entries = JSON.parse(content);
+                        localStorage.setItem(
+                          "journalEntries",
+                          JSON.stringify(entries)
+                        );
+                        alert("Journal entries imported successfully.");
+                        window.location.reload();
+                      } catch (error) {
+                        console.error("Error parsing JSON file:", error);
+                        alert("Invalid JSON file format.");
+                      }
+                    };
+                    reader.readAsText(file);
                   }
-                  reader.readAsText(file);
-                } else if (file && file.name.endsWith(".json")) {
-                  const reader = new FileReader();
-                  reader.onload = (event) => {
-                    const content = event.target?.result as string;
-                    try {
-                      const entries = JSON.parse(content);
-                      localStorage.setItem(
-                        "journalEntries",
-                        JSON.stringify(entries)
-                      );
-                      alert("Journal entries imported successfully.");
-                      window.location.reload();
-                    } catch (error) {
-                      console.error("Error parsing JSON file:", error);
-                      alert("Invalid JSON file format.");
-                    }
-                  }
-                  reader.readAsText(file);
-                }
-              }}
-              id="import-json"
-            /></Card>
-              </Flex>
+                }}
+                id="import-json"
+              />
+            </Card>
+          </Flex>
         </Card>
       </Center>
 
-      <FaCog className="settings-icon" onClick={() => {
-        const settingsCard = document.getElementById("settings-card");
-        if (settingsCard) {
-          settingsCard.style.display =
-            settingsCard.style.display === "none" ? "block" : "none";
+      <FaCog
+        className="settings-icon"
+        onClick={() => {
+          const settingsCard = document.getElementById("settings-card");
+          if (settingsCard) {
+            settingsCard.style.display =
+              settingsCard.style.display === "none" ? "block" : "none";
             const mainContent = document.getElementById("main-content");
             mainContent!.style.opacity =
               mainContent!.style.opacity === "0.5" ? "1" : "0.5";
@@ -436,9 +607,9 @@ function App() {
             if (settingsIcon) {
               settingsIcon.classList.toggle("hidden");
             }
-        }
-      }} />
-    
+          }
+        }}
+      />
     </MantineProvider>
   );
 }
