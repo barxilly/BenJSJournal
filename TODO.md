@@ -1,17 +1,23 @@
 - [x] Base Layout
-- [ ] Journalling with Markdown and Titles
+- [x] Journalling 
+- [ ] with Markdown and Titles
 - [ ] Fix Ratings Dark BG
+- [ ] Audio Recodings
+- [ ] Search
+- [ ] Tags
+- [ ] Attachments
 - [ ] Encryption
 - [ ] Backups
-- [ ] Day/Mood Rankings?
+- [x] Day/Mood Rankings?
 - [ ] Custom Rankings?
 - [ ] Portability
 - [ ] Standardized Data Format
+- [ ] Export as SDF or as JSON, individual days by TXT
 - [ ] Sounds?
 - [ ] Notifications
 - [ ] PWA
 - [ ] Settings
 - [ ] Fonts
-- [ ] Title
+- [x] Title
 - [ ] Embeds
 - [ ] README

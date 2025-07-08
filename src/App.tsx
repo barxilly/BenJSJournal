@@ -4,6 +4,7 @@ import "./App.css";
 import {
   Card,
   Center,
+  createTheme,
   Grid,
   MantineProvider,
   Rating,
@@ -16,6 +17,7 @@ import {
 } from "@mantine/core";
 import { Calendar, DatePicker } from "@mantine/dates";
 import { useState } from "react";
+import { FaCog } from "react-icons/fa";
 
 function App() {
   const [date, setDate] = useState<string | null>((new Date().toISOString().split("T")[0]).toString())
@@ -60,8 +62,13 @@ function App() {
     console.log("Journal entries saved to localStorage:", entries);
   }
 
+  const theme = createTheme({
+  fontFamily: '"Rubik", sans-serif',
+  headings: { fontFamily: '"M PLUS Rounded 1c", sans-serif' },
+});
+
   return (
-    <MantineProvider defaultColorScheme="auto">
+    <MantineProvider defaultColorScheme="auto" theme={theme}>
       <Center
         className="appcon"
         style={{
@@ -70,6 +77,7 @@ function App() {
           paddingBottom: 0,
           paddingLeft: "1em",
           paddingRight: "1em",
+          position: "relative",
         }}
       >
         <Stack
@@ -78,7 +86,7 @@ function App() {
           style={{ width: "100%", maxWidth: 800 }}
         >
           <div style={{ textAlign: "center" }}>
-            <Title className="title">BenJS Journal</Title>
+            <Title className="title" style={{fontWeight:"900"}}>BenJS Journal</Title>
             <Title order={4}>
               I'm aware how big-headed naming apps after myself is
             </Title>
@@ -195,7 +203,8 @@ function App() {
             </Grid.Col>
           </Grid>
         </Stack>
-      </Center>
+        
+      </Center><FaCog className="settings-icon" />
     </MantineProvider>
   );
 }

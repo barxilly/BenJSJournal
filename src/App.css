@@ -74,3 +74,16 @@
 body{
   background: linear-gradient(to top, #75b2bc44,  #00000000) !important;
 }
+
+.settings-icon {
+  position: absolute;
+  bottom: 1em;
+  right: 1em;
+  font-size: 1.5em;
+  color: #888888aa;
+}
+
+.settings-icon:hover {
+  color: #888888ff;
+  cursor: pointer;
+}
