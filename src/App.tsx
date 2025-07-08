@@ -21,9 +21,12 @@ import {
 import { Calendar, DatePicker } from "@mantine/dates";
 import { useState } from "react";
 import { FaCog } from "react-icons/fa";
-import { BiCross } from "react-icons/bi";
+import { BiCross, BiMicrophone } from "react-icons/bi";
 import { ImCross } from "react-icons/im";
-  import { useEffect } from "react";
+import { useEffect } from "react";
+import { BsRecordCircle, BsSpeaker } from "react-icons/bs";
+import { IoRecording } from "react-icons/io5";
+import { IoIosRecording } from "react-icons/io";
 
 function App() {
   const [date, setDate] = useState<string | null>(
@@ -32,6 +35,7 @@ function App() {
   const [curTitle, setCurTitle] = useState<string | null>(null);
   const [curContent, setCurContent] = useState<string | null>(null);
   const [curRating, setCurRating] = useState<number | null>(null);
+  const [recording, setRecording] = useState<boolean>(false);
 
   // Move initialization logic to useEffect to avoid state updates during render
 
@@ -105,8 +109,26 @@ function App() {
     );
   }
 
+  function browserSupportsSpeechRecognition() {
+    // Only Chrome, Edge, and Safari support speech recognition
+    // Check if browser is exactly Chrome, Edge, or Safari
+    return "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
+  }
+
   return (
     <MantineProvider defaultColorScheme="auto" theme={theme}>
+      <BsRecordCircle
+        style={{
+          position: "fixed",
+          top: "1em",
+          right: "1em",
+          fontSize: "2em",
+          color: "red",
+          cursor: "pointer",
+          display: recording ? "block" : "none",
+          animation: recording ? "pulse 1s infinite" : "none",
+        }}
+      />
       <Center
         className="appcon"
         style={{
@@ -178,10 +200,12 @@ function App() {
                       setCurRating(entries[selectedDate]?.rating || 0);
                     }
                   }}
-                  renderDay={(rdate:string) => {
+                  renderDay={(rdate: string) => {
                     const today = new Date().toISOString().split("T")[0];
                     const isToday = rdate === today;
-                    const isWeekend = new Date(rdate).getDay() === 0 || new Date(rdate).getDay() === 6;
+                    const isWeekend =
+                      new Date(rdate).getDay() === 0 ||
+                      new Date(rdate).getDay() === 6;
                     const isPast = new Date(rdate) < new Date(today);
                     const isSelected = rdate === date;
                     return (
@@ -190,32 +214,46 @@ function App() {
                           padding: "0.5em",
                           position: "relative",
                           borderRadius: "var(--mantine-radius-default)",
-                          color: isSelected? "" : isToday?"var(--mantine-primary-color-filled)": isWeekend ?isPast ? "#ff9d9d" : "#ee6b6b" : isPast ? "#adb5bd" : "#495057",
-                          border: isSelected ? "" : isToday ? "2px solid var(--mantine-primary-color-filled)" : ""
+                          color: isSelected
+                            ? ""
+                            : isToday
+                            ? "var(--mantine-primary-color-filled)"
+                            : isWeekend
+                            ? isPast
+                              ? "#ff9d9d"
+                              : "#ee6b6b"
+                            : isPast
+                            ? "#adb5bd"
+                            : "#495057",
+                          border: isSelected
+                            ? ""
+                            : isToday
+                            ? "2px solid var(--mantine-primary-color-filled)"
+                            : "",
                         }}
                       >
-                        {(JSON.parse(localStorage.getItem("journalEntries") || "{}")[
-                          rdate
-                        ]?.rating > 0) ? (<>
-                          <Indicator
-                            color="green"
-                            size={8}
-                            offset={-2}
-                            style={{
-                              position: "absolute",
-                              top: "0.5em",
-                              right: "0.5em",
-                            }}
-                          >
-                            
-                          </Indicator>{rdate.split("-")[2]}</>
+                        {JSON.parse(
+                          localStorage.getItem("journalEntries") || "{}"
+                        )[rdate]?.rating > 0 ? (
+                          <>
+                            <Indicator
+                              color="green"
+                              size={8}
+                              offset={-2}
+                              style={{
+                                position: "absolute",
+                                top: "0.5em",
+                                right: "0.5em",
+                              }}
+                            ></Indicator>
+                            {rdate.split("-")[2]}
+                          </>
                         ) : (
                           rdate.split("-")[2]
                         )}
                       </div>
                     );
                   }}
-                  
                 />
               </Card>
             </Grid.Col>
@@ -236,42 +274,200 @@ function App() {
                   }}
                   value={curTitle || ""}
                 />
-                <Textarea
-                  placeholder={
-                    [
-                      "Write your thoughts here...",
-                      "What happened today?",
-                      "How do you feel?",
-                      "What are you grateful for?",
-                      "What did you learn today?",
-                      "What challenges did you face?",
-                      "What made you happy today?",
-                      "What are your goals for tomorrow?",
-                      "Reflect on your day.",
-                      "Describe a memorable moment.",
-                    ][Math.floor(Math.random() * 10)]
-                  }
-                  autosize
-                  minRows={8}
-                  maxRows={8}
-                  variant="default"
-                  size="md"
-                  radius="lg"
+                <div
                   style={{
-                    width: "100%",
-                    fontSize: "16px",
-                    lineHeight: 1.6,
+                    position: "relative",
+                    display: "flex",
+                    height: "100%",
                   }}
-                  className="journal-textarea"
-                  disabled={
-                    !(date == new Date().toISOString().split("T")[0].toString())
-                  }
-                  value={curContent || ""}
-                  onChange={(e) => {
-                    editJournal(date || "", undefined, e.target.value);
-                    setCurContent(e.target.value);
-                  }}
-                />
+                >
+                  <Textarea
+                    placeholder={
+                      [
+                        "Write your thoughts here...",
+                        "What happened today?",
+                        "How do you feel?",
+                        "What are you grateful for?",
+                        "What did you learn today?",
+                        "What challenges did you face?",
+                        "What made you happy today?",
+                        "What are your goals for tomorrow?",
+                        "Reflect on your day.",
+                        "Describe a memorable moment.",
+                      ][Math.floor(Math.random() * 10)]
+                    }
+                    autosize
+                    minRows={8}
+                    maxRows={8}
+                    variant="default"
+                    size="md"
+                    radius="lg"
+                    style={{
+                      width: "100%",
+                      fontSize: "16px",
+                      lineHeight: 1.6,
+                    }}
+                    className="journal-textarea"
+                    disabled={
+                      !(
+                        date ==
+                        new Date().toISOString().split("T")[0].toString()
+                      )
+                    }
+                    value={curContent || ""}
+                    onChange={(e) => {
+                      editJournal(date || "", undefined, e.target.value);
+                      setCurContent(e.target.value);
+                    }}
+                  />
+                  <BiMicrophone
+                    color="grey"
+                    style={{
+                      position: "absolute",
+                      bottom: "1em",
+                      right: "1em",
+                      cursor: "pointer",
+                      zIndex: "1000",
+                      display: browserSupportsSpeechRecognition() ? "" : "none",
+                    }}
+                    onClick={() => {
+                      // Transcribe audio input to text using Web Speech API
+                      if (
+                        !("webkitSpeechRecognition" in window) &&
+                        !("SpeechRecognition" in window)
+                      ) {
+                        alert(
+                          "Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari."
+                        );
+                        return;
+                      }
+
+                      if (recording) {
+                        // Stop recording if already recording
+                        const recognition = (window as any).SpeechRecognition
+                          ? (window as any).SpeechRecognition.getInstance()
+                          : (
+                              window as any
+                            ).webkitSpeechRecognition.getInstance();
+                        if (recognition) {
+                          try {
+                            recognition.stop();
+                            setRecording(false);
+                          } catch (e) {
+                            console.log(
+                              "Error stopping speech recognition:",
+                              e
+                            );
+                          }
+                        }
+                        return;
+                      }
+
+                      const SpeechRecognition =
+                        (window as any).SpeechRecognition ||
+                        (window as any).webkitSpeechRecognition;
+                      const recognition = new SpeechRecognition();
+
+                      // More robust configuration
+                      recognition.continuous = true; // Enable continuous recording for natural journaling
+                      recognition.interimResults = true;
+                      recognition.lang = "en-US";
+                      recognition.maxAlternatives = 1;
+
+                      let finalTranscript = "";
+                      let isRecognitionActive = false;
+
+                      recognition.onstart = () => {
+                        console.log("Speech recognition started");
+                        isRecognitionActive = true;
+                        setRecording(true);
+                      };
+
+                      recognition.onresult = (event: any) => {
+                        let interimTranscript = "";
+
+                        for (
+                          let i = event.resultIndex;
+                          i < event.results.length;
+                          i++
+                        ) {
+                          const transcript = event.results[i][0].transcript;
+                          if (event.results[i].isFinal) {
+                            finalTranscript += transcript + " ";
+                          } else {
+                            interimTranscript += transcript;
+                          }
+                        }
+
+                        // Update the textarea with the transcribed text
+                        const currentContent = curContent || "";
+                        const newContent =
+                          currentContent + finalTranscript + interimTranscript;
+                        setCurContent(newContent);
+                        editJournal(date || "", undefined, newContent);
+                      };
+
+                      recognition.onerror = (event: any) => {
+                        console.log(
+                          "Speech recognition error (handled silently):",
+                          event.error
+                        );
+                        // Don't show alerts for common errors, just handle gracefully
+                        if (
+                          event.error === "network" ||
+                          event.error === "no-speech" ||
+                          event.error === "aborted"
+                        ) {
+                          alert(
+                            "Only Chrome, Edge, and Safari support speech recognition. Blame Google."
+                          );
+                          //return;
+                          // Fallback for unsupported browsers, using library
+                        }
+                        // Only alert for unexpected errors
+                        if (event.error === "not-allowed") {
+                          alert(
+                            "Microphone access denied. Please allow microphone access in your browser settings."
+                          );
+                        }
+                      };
+
+                      recognition.onend = () => {
+                        console.log("Speech recognition ended");
+                        setRecording(false);
+                        isRecognitionActive = false;
+                        if (finalTranscript) {
+                          const currentContent = curContent || "";
+                          const newContent = currentContent + finalTranscript;
+                          setCurContent(newContent);
+                          editJournal(date || "", undefined, newContent);
+                        }
+                      };
+
+                      // Start recognition with retry mechanism
+                      try {
+                        recognition.start();
+
+                        // Auto-stop after 8 seconds to prevent hanging
+                        setTimeout(() => {
+                          if (isRecognitionActive) {
+                            try {
+                              recognition.stop();
+                            } catch (e) {
+                              // Ignore errors when stopping
+                            }
+                          }
+                        }, 8000);
+                      } catch (error) {
+                        console.log(
+                          "Error starting speech recognition:",
+                          error
+                        );
+                        // Silent fallback - don't alert the user
+                      }
+                    }}
+                  />
+                </div>
                 <Card
                   padding="lg"
                   radius="lg"
@@ -292,14 +488,32 @@ function App() {
                       size="lg"
                       defaultValue={0}
                       style={{
-                        pointerEvents: !(date == new Date().toISOString().split("T")[0].toString()) ? "none" : "auto",
+                        pointerEvents: !(
+                          date ==
+                          new Date().toISOString().split("T")[0].toString()
+                        )
+                          ? "none"
+                          : "auto",
                       }}
                       onChange={(value) => {
-                        if (!(date == new Date().toISOString().split("T")[0].toString())) return;
+                        if (
+                          !(
+                            date ==
+                            new Date().toISOString().split("T")[0].toString()
+                          )
+                        )
+                          return;
                         editJournal(date || "", undefined, undefined, value);
                         setCurRating(value);
                       }}
-                      color={!(date == new Date().toISOString().split("T")[0].toString()) ? "#aaa": "var(--mantine-color-yellow-filled)"}
+                      color={
+                        !(
+                          date ==
+                          new Date().toISOString().split("T")[0].toString()
+                        )
+                          ? "#aaa"
+                          : "var(--mantine-color-yellow-filled)"
+                      }
                       value={curRating || 0}
                     />
                   </Center>
@@ -587,28 +801,29 @@ function App() {
                 }}
                 id="import-json"
               />
-            </Card></Flex>
-            <Title order={4} style={{ marginTop: "0em", marginBottom: "0.5em" }}>
-              Delete All Entries
-            </Title>
-            <Button
-              color="red"
-              variant="outline"
-              onClick={() => {
-                if (
-                  window.confirm(
-                    "Are you sure you want to delete all journal entries? This action cannot be undone."
-                  )
-                ) {
-                  localStorage.removeItem("journalEntries");
-                  alert("All journal entries deleted.");
-                  window.location.reload();
-                }
-              }}
-            >
-              <ImCross />&nbsp;&nbsp;Delete All Entries
-            </Button>
-          
+            </Card>
+          </Flex>
+          <Title order={4} style={{ marginTop: "0em", marginBottom: "0.5em" }}>
+            Delete All Entries
+          </Title>
+          <Button
+            color="red"
+            variant="outline"
+            onClick={() => {
+              if (
+                window.confirm(
+                  "Are you sure you want to delete all journal entries? This action cannot be undone."
+                )
+              ) {
+                localStorage.removeItem("journalEntries");
+                alert("All journal entries deleted.");
+                window.location.reload();
+              }
+            }}
+          >
+            <ImCross />
+            &nbsp;&nbsp;Delete All Entries
+          </Button>
         </Card>
       </Center>
 

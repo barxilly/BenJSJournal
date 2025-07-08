@@ -1,11 +1,13 @@
 - [x] Base Layout
 - [x] Journalling 
 - [ ] with Markdown and Titles
-- [ ] Fix Ratings Dark BG
+- [x] Fix Ratings Dark BG
 - [ ] Audio Recodings
 - [ ] Search
 - [ ] Tags
 - [ ] Attachments
+- [ ] Locking
+- [ ] Auto-locking
 - [x] Encryption
 - [x] Backups
 - [x] Day/Mood Rankings?
