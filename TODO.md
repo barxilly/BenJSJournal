@@ -10,15 +10,15 @@
 - [x] Backups
 - [x] Day/Mood Rankings?
 - [ ] Custom Rankings?
-- [ ] Portability
 - [x] Standardized Data Format
 - [x] Export as SDF or as JSON
 - [ ] , individual days by TXT
 - [ ] Sounds?
 - [ ] Notifications
 - [ ] PWA
-- [ ] Settings
-- [ ] Fonts
+- [x] Settings
+- [ ] Polish Settings
+- [x] Fonts
 - [x] Title
 - [x] Embeds
 - [ ] Embed Image

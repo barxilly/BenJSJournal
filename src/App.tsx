@@ -190,7 +190,7 @@ function App() {
                           padding: "0.5em",
                           position: "relative",
                           borderRadius: "var(--mantine-radius-default)",
-                          color: isSelected? "" : isToday?"var(--mantine-primary-color-filled)": isWeekend ? "#ff6b6b" : isPast ? "#adb5bd" : "#495057",
+                          color: isSelected? "" : isToday?"var(--mantine-primary-color-filled)": isWeekend ?isPast ? "#ff9d9d" : "#ee6b6b" : isPast ? "#adb5bd" : "#495057",
                           border: isSelected ? "" : isToday ? "2px solid var(--mantine-primary-color-filled)" : ""
                         }}
                       >
@@ -253,6 +253,7 @@ function App() {
                   }
                   autosize
                   minRows={8}
+                  maxRows={8}
                   variant="default"
                   size="md"
                   radius="lg"
@@ -282,7 +283,7 @@ function App() {
                     backgroundColor: !(
                       date == new Date().toISOString().split("T")[0].toString()
                     )
-                      ? "#e9ecef"
+                      ? "var(--mantine-color-disabled)"
                       : "",
                   }}
                 >
@@ -290,10 +291,15 @@ function App() {
                     <Rating
                       size="lg"
                       defaultValue={0}
+                      style={{
+                        pointerEvents: !(date == new Date().toISOString().split("T")[0].toString()) ? "none" : "auto",
+                      }}
                       onChange={(value) => {
+                        if (!(date == new Date().toISOString().split("T")[0].toString())) return;
                         editJournal(date || "", undefined, undefined, value);
                         setCurRating(value);
                       }}
+                      color={!(date == new Date().toISOString().split("T")[0].toString()) ? "#aaa": "var(--mantine-color-yellow-filled)"}
                       value={curRating || 0}
                     />
                   </Center>
@@ -348,7 +354,7 @@ function App() {
             }}
           />
           <Title order={3}>Settings</Title>
-          <Title order={4} style={{ marginTop: "1em" }}>
+          <Title order={4} style={{ marginTop: "1em", marginBottom: "0.5em" }}>
             Export
           </Title>
           <Flex gap="md">
@@ -581,8 +587,28 @@ function App() {
                 }}
                 id="import-json"
               />
-            </Card>
-          </Flex>
+            </Card></Flex>
+            <Title order={4} style={{ marginTop: "0em", marginBottom: "0.5em" }}>
+              Delete All Entries
+            </Title>
+            <Button
+              color="red"
+              variant="outline"
+              onClick={() => {
+                if (
+                  window.confirm(
+                    "Are you sure you want to delete all journal entries? This action cannot be undone."
+                  )
+                ) {
+                  localStorage.removeItem("journalEntries");
+                  alert("All journal entries deleted.");
+                  window.location.reload();
+                }
+              }}
+            >
+              <ImCross />&nbsp;&nbsp;Delete All Entries
+            </Button>
+          
         </Card>
       </Center>
 

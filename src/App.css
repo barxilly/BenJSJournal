@@ -12,7 +12,7 @@
 }
 
 .rating-card {
-  border: calc(0.0625rem * var(--mantine-scale)) solid var(--mantine-color-gray-4) !important;
+  border: calc(0.0625rem * var(--mantine-scale)) solid var(--mantine-color-default-border) !important;
 }
 
 .journal-textarea .mantine-Textarea-wrapper {
