@@ -1,6 +1,6 @@
 - [x] Base Layout
 - [x] Journalling 
-- [ ] with Markdown and Titles
+- [ ] with Markdown
 - [x] Fix Ratings Dark BG
 - [x] Audio ~Recodings~ Transcriptions
 - [ ] Search
@@ -17,11 +17,11 @@
 - [ ] , individual days by TXT
 - [ ] Sounds?
 - [x] Notifications
-- [ ] PWA
+- [x] PWA
 - [x] Settings
-- [ ] Polish Settings
+- [x] Polish Settings
 - [x] Fonts
 - [x] Title
 - [x] Embeds
-- [ ] Embed Image
+- [x] Embed Image
 - [ ] README
