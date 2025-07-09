@@ -6,7 +6,6 @@ import {
   Button,
   Card,
   Center,
-  ColorPicker,
   createTheme,
   Flex,
   Grid,
@@ -18,17 +17,14 @@ import {
   Textarea,
   TextInput,
   Title,
-  useMantineColorScheme,
 } from "@mantine/core";
-import { Calendar, DatePicker } from "@mantine/dates";
+import { DatePicker } from "@mantine/dates";
 import { useState } from "react";
 import { FaCog } from "react-icons/fa";
-import { BiCross, BiMicrophone } from "react-icons/bi";
+import { BiMicrophone } from "react-icons/bi";
 import { ImCross } from "react-icons/im";
 import { useEffect } from "react";
-import { BsRecordCircle, BsSpeaker } from "react-icons/bs";
-import { IoRecording } from "react-icons/io5";
-import { IoIosRecording } from "react-icons/io";
+import { BsRecordCircle } from "react-icons/bs";
 import { CgCalendarToday } from "react-icons/cg";
 // #endregion
 
@@ -160,19 +156,6 @@ function App() {
     console.log("Journal entries saved to localStorage:", entries);
   }
 
-  function installApp() {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult: any) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('User accepted the install prompt');
-        } else {
-          console.log('User dismissed the install prompt');
-        }
-        setDeferredPrompt(null);
-      });
-    }
-  }
 
   function requestNotificationPermission() {
     if ('Notification' in window) {

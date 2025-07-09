@@ -5,7 +5,7 @@ const urlsToCache = [
   '/src/App.tsx',
   '/src/App.css',
   '/src/index.css',
-  '/vite.svg',
+  '/icon-512.png',
   '/manifest.json',
   // Cache Google Fonts
   'https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@100;300;400;500;700;800;900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap',
@@ -97,20 +97,20 @@ function doBackgroundSync() {
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data ? event.data.text() : "Don't forget to write in your journal today!",
-    icon: '/vite.svg',
-    badge: '/vite.svg',
+    icon: '/icon-512.png',
+    badge: '/icon-512.png',
     tag: 'journal-reminder',
     requireInteraction: true,
     actions: [
       {
         action: 'open',
         title: 'Open Journal',
-        icon: '/vite.svg'
+        icon: '/icon-512.png'
       },
       {
         action: 'dismiss',
         title: 'Dismiss',
-        icon: '/vite.svg'
+        icon: '/icon-512.png'
       }
     ]
   };
