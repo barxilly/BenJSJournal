@@ -4,21 +4,63 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#339af0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="BenJS Journal" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/vite.svg" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/vite.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/vite.svg" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/vite.svg" />
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileImage" content="/vite.svg" />
+    <meta name="msapplication-TileColor" content="#339af0" />
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@100;300;400;500;700;800;900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
-<meta name="title" content="BenJS Journal">
-<meta name="description" content="An open-source, encrypted journal application built with React and TypeScript.">
-<meta name="keywords" content="journal, diary, encrypted, open-source, React, TypeScript, BenJS">
-<meta name="author" content="BenJS">
-<meta property="og:title" content="BenJS Journal">
-<meta property="og:description" content="An open-source, encrypted journal application built with React and TypeScript.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://benjsjournal.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@100;300;400;500;700;800;900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="title" content="BenJS Journal">
+    <meta name="description" content="An open-source, encrypted journal application built with React and TypeScript.">
+    <meta name="keywords" content="journal, diary, encrypted, open-source, React, TypeScript, BenJS">
+    <meta name="author" content="BenJS">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="BenJS Journal">
+    <meta property="og:description" content="An open-source, encrypted journal application built with React and TypeScript.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://benjsjournal.com">
+    <meta property="og:image" content="/vite.svg">
+    
     <title>BenJS Journal</title>
   </head>
   <body style="min-height: 100vh;">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

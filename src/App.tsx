@@ -1,3 +1,4 @@
+// #region Imports
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import "./App.css";
@@ -5,6 +6,7 @@ import {
   Button,
   Card,
   Center,
+  ColorPicker,
   createTheme,
   Flex,
   Grid,
@@ -27,8 +29,11 @@ import { useEffect } from "react";
 import { BsRecordCircle, BsSpeaker } from "react-icons/bs";
 import { IoRecording } from "react-icons/io5";
 import { IoIosRecording } from "react-icons/io";
+import { CgCalendarToday } from "react-icons/cg";
+// #endregion
 
 function App() {
+  // #region State Variables
   const [date, setDate] = useState<string | null>(
     new Date().toISOString().split("T")[0].toString()
   );
@@ -36,7 +41,12 @@ function App() {
   const [curContent, setCurContent] = useState<string | null>(null);
   const [curRating, setCurRating] = useState<number | null>(null);
   const [recording, setRecording] = useState<boolean>(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState<boolean>(false);
+  // #endregion
 
+  // #region Initialization
   // Move initialization logic to useEffect to avoid state updates during render
 
   useEffect(() => {
@@ -58,8 +68,64 @@ function App() {
       setCurContent(entries[today]?.content || "");
       setCurRating(entries[today]?.rating || 0);
     }
-  }, []);
 
+    // Initialize notification settings
+    const notificationSetting = localStorage.getItem("notificationsEnabled");
+    if (notificationSetting === "true") {
+      setNotificationsEnabled(true);
+      if (Notification.permission === 'granted') {
+        scheduleDaily6PMNotification();
+      }
+    } else if (notificationSetting === null) {
+      // First time user - set default to false
+      localStorage.setItem("notificationsEnabled", "false");
+      setNotificationsEnabled(false);
+    } else {
+      setNotificationsEnabled(false);
+    }
+
+    // Check if the app is already installed
+    const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches;
+    setIsInstalled(isAppInstalled);
+
+    // PWA Install Prompt Setup
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // #region Service Worker Registration
+    // Register the service worker for PWA functionality
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((registration) => {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch((error) => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
+    // #endregion
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+  // #endregion
+
+  // #region Helper Functions
   function editJournal(
     date: string,
     title?: string,
@@ -94,9 +160,63 @@ function App() {
     console.log("Journal entries saved to localStorage:", entries);
   }
 
+  function installApp() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        } else {
+          console.log('User dismissed the install prompt');
+        }
+        setDeferredPrompt(null);
+      });
+    }
+  }
+
+  function requestNotificationPermission() {
+    if ('Notification' in window) {
+      return Notification.requestPermission();
+    }
+    return Promise.resolve('denied');
+  }
+
+  function hasCompletedTodaysEntry(): boolean {
+    const today = new Date().toISOString().split("T")[0];
+    const entries = JSON.parse(localStorage.getItem("journalEntries") || "{}");
+    const todaysEntry = entries[today];
+    return !!(todaysEntry && (todaysEntry.title || todaysEntry.content || todaysEntry.rating > 0));
+  }
+
+  function scheduleDaily6PMNotification() {
+    const now = new Date();
+    const today6PM = new Date();
+    today6PM.setHours(18, 0, 0, 0);
+    
+    // If it's already past 6 PM today, schedule for tomorrow
+    if (now > today6PM) {
+      today6PM.setDate(today6PM.getDate() + 1);
+    }
+    
+    const timeUntil6PM = today6PM.getTime() - now.getTime();
+    
+    setTimeout(() => {
+      if (!hasCompletedTodaysEntry() && Notification.permission === 'granted') {
+        new Notification('BenJS Journal Reminder', {
+          body: "Don't forget to write in your journal today!",
+          icon: '/vite.svg',
+          requireInteraction: true
+        });
+      }
+      // Schedule the next day's notification
+      scheduleDaily6PMNotification();
+    }, timeUntil6PM);
+  }
+
   const theme = createTheme({
     fontFamily: '"Rubik", sans-serif',
     headings: { fontFamily: '"M PLUS Rounded 1c", sans-serif' },
+    primaryColor: localStorage.getItem("primaryColor") || "blue",
   });
 
   function isMobile() {
@@ -114,7 +234,9 @@ function App() {
     // Check if browser is exactly Chrome, Edge, or Safari
     return "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
   }
+  // #endregion
 
+  // #region Render
   return (
     <MantineProvider defaultColorScheme="auto" theme={theme}>
       <BsRecordCircle
@@ -160,6 +282,7 @@ function App() {
             align="stretch"
             style={{ width: "100%", minHeight: "60vh", position: "relative" }}
           >
+            {/* #region Calendar Section */}
             <Grid.Col span={{ base: 12, sm: 6 }}>
               <Card
                 padding="lg"
@@ -168,99 +291,116 @@ function App() {
                 style={{ width: "100%", height: "60vh" }}
                 color="white"
               >
-                <DatePicker
-                  size={!isMobile() ? "lg" : "xl"}
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                  }}
-                  firstDayOfWeek={1}
-                  hideOutsideDates
-                  defaultValue={new Date().toISOString().split("T")[0]}
-                  value={date}
-                  onChange={(value) => {
-                    if (value) {
-                      const selectedDate = value;
-                      setDate(selectedDate);
-                      const entries = JSON.parse(
-                        localStorage.getItem("journalEntries") || "{}"
-                      );
-                      if (!entries[selectedDate]) {
-                        editJournal(selectedDate);
-                      } else {
-                        console.log(
-                          "Entry already exists for date:",
-                          selectedDate
-                        );
-                      }
-                      setCurTitle(entries[selectedDate]?.title || "");
-                      setCurContent(entries[selectedDate]?.content || "");
-                      setCurRating(entries[selectedDate]?.rating || 0);
-                    }
-                  }}
-                  renderDay={(rdate: string) => {
-                    const today = new Date().toISOString().split("T")[0];
-                    const isToday = rdate === today;
-                    const isWeekend =
-                      new Date(rdate).getDay() === 0 ||
-                      new Date(rdate).getDay() === 6;
-                    const isPast = new Date(rdate) < new Date(today);
-                    const isSelected = rdate === date;
-                    return (
-                      <div
-                        style={{
-                          padding: "0.5em",
-                          position: "relative",
-                          borderRadius: "var(--mantine-radius-default)",
-                          color: isSelected
-                            ? ""
-                            : isToday
-                            ? "var(--mantine-primary-color-filled)"
-                            : isWeekend
-                            ? isPast
-                              ? "#ff9d9d"
-                              : "#ee6b6b"
-                            : isPast
-                            ? "#adb5bd"
-                            : "#495057",
-                          border: isSelected
-                            ? ""
-                            : isToday
-                            ? "2px solid var(--mantine-primary-color-filled)"
-                            : "",
-                        }}
-                      >
-                        {JSON.parse(
+                <Stack>
+                  <DatePicker
+                    size="lg"
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                    }}
+                    firstDayOfWeek={1}
+                    hideOutsideDates
+                    defaultValue={new Date().toISOString().split("T")[0]}
+                    value={date}
+                    onChange={(value) => {
+                      if (value) {
+                        const selectedDate = value;
+                        setDate(selectedDate);
+                        const entries = JSON.parse(
                           localStorage.getItem("journalEntries") || "{}"
-                        )[rdate]?.rating > 0 ? (
-                          <>
-                            <Indicator
-                              color="green"
-                              size={8}
-                              offset={-2}
-                              style={{
-                                position: "absolute",
-                                top: "0.5em",
-                                right: "0.5em",
-                              }}
-                            ></Indicator>
-                            {rdate.split("-")[2]}
-                          </>
-                        ) : (
-                          rdate.split("-")[2]
-                        )}
-                      </div>
-                    );
-                  }}
-                />
+                        );
+                        if (!entries[selectedDate]) {
+                          editJournal(selectedDate);
+                        } else {
+                          console.log(
+                            "Entry already exists for date:",
+                            selectedDate
+                          );
+                        }
+                        setCurTitle(entries[selectedDate]?.title || "");
+                        setCurContent(entries[selectedDate]?.content || "");
+                        setCurRating(entries[selectedDate]?.rating || 0);
+                      }
+                    }}
+                    renderDay={(rdate: string) => {
+                      const today = new Date().toISOString().split("T")[0];
+                      const isToday = rdate === today;
+                      const isWeekend =
+                        new Date(rdate).getDay() === 0 ||
+                        new Date(rdate).getDay() === 6;
+                      const isPast = new Date(rdate) < new Date(today);
+                      const isSelected = rdate === date;
+                      return (
+                        <div
+                          style={{
+                            padding: "0.5em",
+                            position: "relative",
+                            borderRadius: "var(--mantine-radius-default)",
+                            color: isSelected
+                              ? ""
+                              : isToday
+                              ? "var(--mantine-primary-color-filled)"
+                              : isWeekend
+                              ? isPast
+                                ? "#ff9d9d"
+                                : "#ee6b6b"
+                              : isPast
+                              ? "#adb5bd"
+                              : "#495057",
+                            border: isSelected
+                              ? ""
+                              : isToday
+                              ? "2px solid var(--mantine-primary-color-filled)"
+                              : "",
+                          }}
+                        >
+                          {JSON.parse(
+                            localStorage.getItem("journalEntries") || "{}"
+                          )[rdate]?.rating > 0 ? (
+                            <>
+                              <Indicator
+                                color="green"
+                                size={8}
+                                offset={-2}
+                                style={{
+                                  position: "absolute",
+                                  top: "0.5em",
+                                  right: "0.5em",
+                                }}
+                              ></Indicator>
+                              {rdate.split("-")[2]}
+                            </>
+                          ) : (
+                            rdate.split("-")[2]
+                          )}
+                        </div>
+                      );
+                    }}
+                  />
+                  <Button style={{
+                      position: "absolute",
+                      bottom: "1em",
+                      right: "1em",
+                      backgroundColor: "var(--mantine-primary-color-filled)",
+                      borderRadius: "5px",
+                      padding: "0.7em",
+                    }}
+                    onClick={() => {
+                      window.location.reload();
+                    }}
+                    >
+                  <CgCalendarToday  /></Button>
+                </Stack>
               </Card>
             </Grid.Col>
+            {/* #endregion */}
+            {/* #region Journal Entry Section */}
             <Grid.Col span={{ base: 12, sm: 6 }}>
               <Stack style={{ height: "60vh" }} gap="md">
                 <TextInput
-                  placeholder="Title your entry"
+                  placeholder="Entry Title"
                   variant="default"
                   size="md"
                   radius="lg"
@@ -331,6 +471,7 @@ function App() {
                       display: browserSupportsSpeechRecognition() ? "" : "none",
                     }}
                     onClick={() => {
+                      // #region Speech Recognition Logic
                       // Transcribe audio input to text using Web Speech API
                       if (
                         !("webkitSpeechRecognition" in window) &&
@@ -465,6 +606,7 @@ function App() {
                         );
                         // Silent fallback - don't alert the user
                       }
+                      // #endregion
                     }}
                   />
                 </div>
@@ -520,8 +662,10 @@ function App() {
                 </Card>
               </Stack>
             </Grid.Col>
+            {/* #endregion */}
           </Grid>
         </Stack>
+        {/* #region Settings Card */}
         <Card
           id="settings-card"
           style={{
@@ -822,11 +966,93 @@ function App() {
             }}
           >
             <ImCross />
-            &nbsp;&nbsp;Delete All Entries
+            &nbsp;&nbsp;            Delete All Entries
+          </Button>
+          <Title order={4} style={{ marginTop: "1em", marginBottom: "0.5em"  }}>
+            Theme Color
+          </Title>
+          <Button.Group>
+            {[ "pink","red","orange","yellow", "green","blue",  "grape","violet"].map((color) => (
+              <Button
+                key={color}
+                variant="outline"
+                color={color}
+                onClick={() => {
+                  localStorage.setItem("primaryColor", color);
+                  window.location.reload();
+                }}
+                style={{
+                  fontSize: isMobile() ? "0.5em" : "1em",
+                  padding: isMobile() ? "0.5em 1.5em" : "",
+                }}
+              >
+                ★
+              </Button>
+            ))}
+          </Button.Group>
+          <Title order={4} style={{ marginTop: "1em", marginBottom: "0.5em" }}>
+            Notifications
+          </Title>
+          <Flex gap="md" align="center">
+            <Button
+              variant={notificationsEnabled ? "filled" : "outline"}
+              color={notificationsEnabled ? "green" : "gray"}
+              onClick={async () => {
+                if (!notificationsEnabled) {
+                  // Enable notifications
+                  const permission = await requestNotificationPermission();
+                  if (permission === 'granted') {
+                    setNotificationsEnabled(true);
+                    localStorage.setItem("notificationsEnabled", "true");
+                    scheduleDaily6PMNotification();
+                    alert("Daily 6 PM reminders enabled!");
+                  } else {
+                    alert("Please allow notifications in your browser settings to enable reminders.");
+                  }
+                } else {
+                  // Disable notifications
+                  setNotificationsEnabled(false);
+                  localStorage.setItem("notificationsEnabled", "false");
+                  alert("Daily reminders disabled.");
+                }
+              }}
+            >
+              {notificationsEnabled ? "Enabled" : "Enable"} Daily 6 PM Reminders
+            </Button>
+            {notificationsEnabled && (
+              <span style={{ fontSize: "0.9em", color: "gray" }}>
+                You'll get a reminder at 6 PM if you haven't written in your journal
+              </span>
+            )}
+          </Flex>
+          <Title order={4} style={{ marginTop: "1em", marginBottom: "0.5em" }}>
+            Install App
+          </Title>
+          <Button
+            onClick={() => {
+              if (deferredPrompt) {
+                // Show the install prompt
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult: any) => {
+                  if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                    setIsInstalled(true);
+                  } else {
+                    console.log('User dismissed the install prompt');
+                  }
+                  setDeferredPrompt(null);
+                });
+              }
+            }}
+            disabled={isInstalled}
+          >
+            {isInstalled ? 'Installed' : 'Install BenJS Journal'}
           </Button>
         </Card>
+        {/* #endregion */}
       </Center>
 
+      {/* #region Settings Icon */}
       <FaCog
         className="settings-icon"
         onClick={() => {
@@ -851,8 +1077,10 @@ function App() {
           }
         }}
       />
+      {/* #endregion */}
     </MantineProvider>
   );
+  // #endregion
 }
 
 export default App;

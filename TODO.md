@@ -2,7 +2,7 @@
 - [x] Journalling 
 - [ ] with Markdown and Titles
 - [x] Fix Ratings Dark BG
-- [ ] Audio Recodings
+- [x] Audio ~Recodings~ Transcriptions
 - [ ] Search
 - [ ] Tags
 - [ ] Attachments
@@ -16,7 +16,7 @@
 - [x] Export as SDF or as JSON
 - [ ] , individual days by TXT
 - [ ] Sounds?
-- [ ] Notifications
+- [x] Notifications
 - [ ] PWA
 - [x] Settings
 - [ ] Polish Settings

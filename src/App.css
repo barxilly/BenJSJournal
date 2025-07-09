@@ -72,7 +72,7 @@
 }
 
 body{
-  background: linear-gradient(to top, #75b2bc44,  #00000000) !important;
+  background: linear-gradient(to top, color-mix(in srgb, var(--mantine-primary-color-filled) 50%, transparent),  #00000000) !important;
 }
 
 .settings-icon {
